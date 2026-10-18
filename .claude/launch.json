@@ -12,6 +12,15 @@
       ],
       "port": 5174,
       "autoPort": true
+    },
+    {
+      "name": "uisandbox",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd ../UIsandbox && npx vite --port 5175 --strictPort"
+      ],
+      "port": 5175
     }
   ]
 }
