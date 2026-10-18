@@ -24,7 +24,7 @@ import { WALL, useMantineClasses, useIcons, useShadcnParts, useAntdParts } from 
 import { SCENES, ICON_NAMES } from './scenes.mjs'
 import { icons } from './icons.mjs'
 import { materialElements } from './material-elements.mjs'
-import { COMPONENT_GAPS } from './generate.mjs'
+import { COMPONENT_GAPS, SKILL_VOCAB } from './generate.mjs'
 
 const IDS = ['tailwind', 'daisyui', 'shadcn', 'bootstrap', 'material', 'radix', 'mantine', 'antd']
 /* EVERY role, not the seven the first version set.
@@ -130,7 +130,14 @@ export function ownage(html, sheet, tags = null, emitted = null) {
  * `file://${process.argv[1]}` never matched. The guard was silently false and
  * running the file directly printed nothing at all. */
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const css = await buildCss(VALUES, IDS, kits, markup, () => {})
+  /* The skill's citations ride along as a probe. daisyUI and Tailwind generate
+   * classes on demand, so "the sheet defines it" is only answerable for a
+   * class the build was ASKED about: a cited class the kit's own compiler
+   * produces a rule for is theirs, and one it leaves unstyled is invented.
+   * The ownage counts below still run on the wall's own markup, unprobed. */
+  const probe = (id) => markup(id)
+    + `<i class="${(SKILL_VOCAB[id]?.sheetClasses ?? []).join(' ')}"></i>`
+  const css = await buildCss(VALUES, IDS, kits, probe, () => {})
   const mdw = materialElements()
   const TAGS = { material: mdw.bundled }
 
@@ -173,4 +180,24 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   console.log(`\n  ${worst ? 'Not 100%. Everything named above is something we made up.' : 'Every class and every element comes from the kit that defines it.\n  What a kit has no component for is named, not substituted.'}\n`)
 
+  /* ── the skill's citations, held to the same bar as the wall ─────────────
+   * SKILL.md tells an agent which of the kit's names to reach for. A name in
+   * that table that the kit's own sheet does not define is the same invention
+   * as a class on the wall, so it is looked up in the same compiled sheets:
+   * classes in the kit's CSS, elements in Material's registry, component
+   * names in the class maps Mantine and Ant publish. */
+  let madeUp = 0
+  const defines = (sheet, c) => new RegExp(`\\.${c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(sheet)
+  for (const [id, v] of Object.entries(SKILL_VOCAB)) {
+    const bad = []
+    for (const c of v.sheetClasses ?? []) if (!defines(css[id] ?? '', c)) bad.push(`.${c}`)
+    for (const el of v.elements ?? []) if (!mdw.declares.includes(el)) bad.push(`<${el}>`)
+    for (const c of v.mantineClasses ?? []) if (!(c in (kits.mantine?.classes ?? {}))) bad.push(`Mantine ${c}`)
+    for (const c of v.antdClasses ?? []) if (!(kits.antd?.classes ?? []).includes(c)) bad.push(`.${c}`)
+    if (bad.length) { console.log(`  SKILL.md cites names ${kits[id]?.name ?? id} does not define: ${bad.join(' ')}`); madeUp += bad.length }
+  }
+  console.log(madeUp
+    ? `\n  The skill is citing ${madeUp} name${madeUp > 1 ? 's' : ''} nobody defines. Fix SKILL_VOCAB.\n`
+    : `  Every name the skill cites is defined by the kit it is cited for.\n`)
+  process.exitCode = worst || madeUp ? 1 : 0
 }

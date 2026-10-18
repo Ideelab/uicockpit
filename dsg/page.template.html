@@ -2541,6 +2541,8 @@ const DESTS = [
     go: (f) => grab('theme.css', f['theme.css']) },
   { t: 'Just the system', file: 'DESIGN.md', d: 'the tokens, the reasoning and the rules, to Google\'s spec',
     go: (f) => grab('DESIGN.md', f['DESIGN.md']) },
+  { t: 'Just the skill', file: 'SKILL.md', d: 'the working rules as a Claude skill: composition, motion, icons, states, self-checks. In the zip it sits at .claude/skills/, where Claude Code loads it by itself.',
+    go: (f) => { const k = Object.keys(f).find((n) => n.endsWith('/SKILL.md')); grab('SKILL.md', f[k]) } },
   { t: 'The manifest', file: 'MANIFEST.md', d: 'versions, licences, and what could not be done',
     go: (f) => grab('MANIFEST.md', f['MANIFEST.md']) },
   { t: 'These screens', file: 'screens.html', d: 'exactly what you are looking at: the kit\'s CSS, your values, its classes. Open it in a browser.',
@@ -2583,11 +2585,18 @@ function openSheet() {
  * tab strip is a tab strip and not four different documents. */
 const FILES = ['DESIGN.md', 'AGENTS.md', '.cursor/rules', 'tokens.json', 'theme.css', 'install.md', 'MANIFEST.md']
 let fileAt = 'DESIGN.md'
+/* the skill's key carries the system's name, so it is found, not listed — and
+ * its tab says SKILL.md, not the whole path. The slug is already stripped to
+ * [a-z0-9-] by kitName(), so the key is safe where the tab strip renders. */
+const skillKey = (shown) => Object.keys(shown).find((n) => n.endsWith('/SKILL.md'))
+const tabLabel = (n) => n.endsWith('/SKILL.md') ? 'SKILL.md' : n
 function drawFiles(shown) {
-  const have = FILES.filter((n) => shown[n] != null)
-  if (!have.includes(fileAt)) fileAt = have[0]
+  const have = [FILES[0], skillKey(shown), ...FILES.slice(1)].filter((n) => n && shown[n] != null)
+  /* renaming the system renames the skill's path; whoever was reading it
+     should still be reading it, not bounced to the first tab */
+  if (!have.includes(fileAt)) fileAt = (fileAt?.endsWith('/SKILL.md') && skillKey(shown)) || have[0]
   $('#ftabs').innerHTML = have.slice(0, 4).map((n) =>
-    `<button role="radio" data-f="${n}" aria-checked="${n === fileAt}">${n}</button>`).join('')
+    `<button role="radio" data-f="${n}" aria-checked="${n === fileAt}">${tabLabel(n)}</button>`).join('')
   const body = shown[fileAt] ?? ''
   $('#fbody').textContent = body
   $('#fmeta').textContent = `${fileAt} · ${body.split('\n').length} lines`
