@@ -58,14 +58,14 @@
 
     <div class="compose__acts">
       <button class="btn btn--ghost" id="surprise" aria-label="Surprise me"><!--I:shuffle--><span class="btn__t">Surprise me</span></button>
-      <!-- ONE button for both directions. Two buttons in two bars sat at
-           almost the same corner, and the almost is what you saw: the switch
-           jumped a few pixels every time you used it. One element cannot
-           disagree with itself about where it is. -->
-      <button class="btn btn--go" id="stageflip">
-        <span class="flip" id="flipsee"><!--I:maximize--><span class="btn__t">See every component</span></span>
-        <span class="flip" id="flipback" hidden><!--I:minimize--><span class="btn__t">Back to the kit</span></span>
+      <!-- The deliverable owns the corner. "See every component" sat here and
+           read as the main act when it was a drill-down; the band's own door
+           and the Components toggle carry that now. The way BACK from the
+           full wall keeps the same spot, so the corner still flips one idea. -->
+      <button class="btn btn--go" id="stageflip" hidden>
+        <span class="flip" id="flipback"><!--I:minimize--><span class="btn__t">Back to the kit</span></span>
         <kbd>F</kbd></button>
+      <button class="btn btn--go" id="export"><!--I:download--><span class="btn__t">Export this kit</span></button>
     </div>
   </header>
 
@@ -158,6 +158,7 @@
 <main class="wall">
   <div class="wall__bar">
     <p class="eyebrow" id="wallhead">This is what your app will look like</p>
+    <div class="seg" id="rooms" role="radiogroup" aria-label="Screens or components"></div>
     <div class="seg" id="rungs" role="radiogroup" aria-label="Which section"></div>
     <div class="seg" id="modes" role="radiogroup" aria-label="Light or dark"></div>
     <div class="seg" id="view" role="radiogroup" aria-label="One kit or several"></div>
@@ -178,9 +179,8 @@
   </div>
   <div class="dock__bar">
     <div class="dock__what" id="receipt"></div>
-    <div class="dock__acts">
-      <button class="btn btn--go" id="export"><!--I:download-->Export this kit</button>
-    </div>
+    <!-- the export moved to the top right corner, where a deliverable lives;
+         the dock keeps the receipt and the checks, which is what it is for -->
   </div>
   <div class="lint__panel" id="lintpanel" hidden aria-live="polite">
     <header class="lint__top"><p class="eyebrow" id="lintname"></p>

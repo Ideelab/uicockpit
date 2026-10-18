@@ -310,6 +310,257 @@ export const BOARDS = [
   },
 ]
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * THE SIX SCREENS — enough to feel a kit, before anybody pans a wall.
+ *
+ * The wall answers "what is in this system"; these answer the question that
+ * comes first: "what would my app feel like". Six, because that is what it
+ * takes and no more — the kit on one sheet, an overview, the working screen,
+ * a settings form, one flow moment, and the overview again in the kit's own
+ * dark. Every screen is composed from the SAME part vocabulary the boards
+ * use, so the meters, the sweep and the tests cover a screen the same way
+ * they cover a card — a screen is boards data, not a second renderer.
+ *
+ * `shot: true` keeps them out of the pan strip (the grid is their room),
+ * `caps: true` keeps captions only where they are labels (the kit sheet),
+ * and `dark: true` marks the twin the page shows in the kit's own dark.
+ */
+const overviewScreen = () => ({ p: 'stack', gap: 3, kids: [
+  { p: 'row', between: true, kids: [
+    { p: 'heading', level: 2, text: 'Casework' },
+    { p: 'row', kids: [
+      { p: 'button', tone: 'secondary', text: 'Export' },
+      { p: 'button', tone: 'brand', text: 'New request' },
+    ] },
+  ] },
+  { p: 'grid', cols: 4, kids: [
+    { p: 'stat', label: 'Open requests', value: '128' },
+    { p: 'stat', label: 'Median decision', value: '19 days' },
+    { p: 'stat', label: 'Overdue', value: '7' },
+    { p: 'stat', label: 'Satisfaction', value: '4.4' },
+  ] },
+  { p: 'grid', cols: 2, kids: [
+    { p: 'panel', kids: [{ p: 'stack', gap: 3, kids: [
+      { p: 'heading', text: 'Requests by month' },
+      { p: 'chart', legend: ['Online', 'At the desk'], bars: [
+        { label: 'Apr', a: 82, b: 34 }, { label: 'May', a: 96, b: 30 }, { label: 'Jun', a: 74, b: 41 },
+        { label: 'Jul', a: 110, b: 28 }, { label: 'Aug', a: 91, b: 33 }, { label: 'Sep', a: 124, b: 22 },
+      ] },
+    ] }] },
+    { p: 'panel', kids: [{ p: 'stack', gap: 3, kids: [
+      { p: 'heading', text: 'Recent activity' },
+      { p: 'list', rows: [
+        { icon: 'file-text', title: 'Permit granted', sub: '2026-03918 · K. Boone', meta: 'Today' },
+        { icon: 'credit-card', title: 'Fee paid', sub: '2026-04471 · online', meta: 'Yesterday' },
+        { icon: 'car', title: 'Parking permit renewed', sub: 'Zone C · resident', meta: '11 Sep' },
+      ] },
+    ] }] },
+  ] },
+] })
+
+const screenRail = () => ({ p: 'sidenav', groups: [
+  { title: 'Casework', items: [
+    { icon: 'layout-dashboard', text: 'Overview', on: true },
+    { icon: 'inbox', text: 'Requests', count: '24' },
+    { icon: 'arrow-left-right', text: 'Transfers' },
+    { icon: 'trending-up', text: 'Trends' },
+  ] },
+  { title: 'Account', items: [
+    { icon: 'user', text: 'Profile' },
+    { icon: 'bell', text: 'Notifications' },
+    { icon: 'shield', text: 'Security' },
+  ] },
+] })
+
+export const SCREENS = [
+  {
+    id: 'sheet', label: 'The kit', shot: true, caps: true,
+    note: 'Every control on one sheet, in your values.',
+    /* the swatch and shape specimens render at the SIZE Foundations proved:
+       narrower columns pushed their chips under the sweep's 32px visibility
+       gate and reported faint chips the strip never ships */
+    cols: [
+      { w: 440, cards: [
+        { id: 'shot-buttons', title: 'Buttons', panel: true, node: { p: 'stack', gap: 3, kids: [
+          { p: 'row', kids: [
+            { p: 'button', tone: 'brand', text: 'Publish' },
+            { p: 'button', tone: 'secondary', text: 'Preview' },
+            { p: 'button', tone: 'ghost', text: 'Later' },
+            { p: 'button', tone: 'danger', text: 'Remove' },
+          ] },
+          { p: 'divider' },
+          { p: 'iconrow', items: ['copy', 'info', 'trash-2', 'share', 'archive', 'plus'] },
+        ] } },
+        { id: 'shot-status', title: 'Status', panel: true, node: { p: 'stack', gap: 3, kids: [
+          { p: 'row', kids: [
+            { p: 'badge', tone: 'brand', text: 'Under review' },
+            { p: 'badge', tone: 'success', text: 'Granted' },
+            { p: 'badge', tone: 'warning', text: 'Waiting' },
+            { p: 'badge', tone: 'danger', text: 'Refused' },
+          ] },
+          { p: 'tabs', items: ['Open', 'Decided', 'Withdrawn'] },
+        ] } },
+        { id: 'shot-roles', title: 'Colour roles', panel: true, node: { p: 'swatches',
+          roles: ['brand', 'onBrand', 'page', 'surface', 'ink', 'inkMuted', 'line', 'success', 'warning', 'danger', 'focus'] } },
+      ] },
+      { w: 380, cards: [
+        { id: 'shot-fields', title: 'Fields', panel: true, node: { p: 'stack', gap: 3, kids: [
+          { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Reference' }, { p: 'input', value: '2026-04471' }] },
+          { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Category' }, { p: 'select', options: ['Building work', 'Felling', 'Signage'] }] },
+          { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Anything we should know' }, { p: 'textarea', placeholder: 'Optional' }] },
+        ] } },
+        { id: 'shot-choices', title: 'Choices', panel: true, node: { p: 'stack', gap: 3, kids: [
+          { p: 'checkbox', on: true, text: 'This is my own household' },
+          { p: 'checkbox', on: false, text: 'Send me a copy by post' },
+          { p: 'switch', on: true, text: 'Notify me by email' },
+          { p: 'divider' },
+          { p: 'radio', name: 'shotsend', on: 1, items: ['By post', 'By email'] },
+        ] } },
+        { id: 'shot-ranges', title: 'Ranges', panel: true, node: { p: 'stack', gap: 3, kids: [
+          { p: 'label', text: 'Distance' },
+          { p: 'slider', value: 62 },
+          { p: 'label', text: 'Uploaded' },
+          { p: 'progress', value: 65 },
+        ] } },
+      ] },
+      { w: 400, cards: [
+        { id: 'shot-type', title: 'Type', panel: true, node: { p: 'typespec', rows: [
+          { size: 'lg', text: 'A heading that carries a section' },
+          { size: 'md', text: 'Body text is the size everything else is measured against.' },
+          { size: 'sm', text: 'Small print and captions.' },
+        ] } },
+        { id: 'shot-notices', title: 'Notices', panel: false, node: { p: 'stack', gap: 2, kids: [
+          { p: 'alert', tone: 'success', text: 'Saved. Your changes are live.' },
+          { p: 'alert', tone: 'warning', text: 'Check this. The due date is in the past.' },
+          { p: 'alert', tone: 'danger', text: 'Not sent. Two fields are missing.' },
+        ] } },
+        { id: 'shot-menu', title: 'A menu, open', panel: true, node: { p: 'menu',
+          icon: 'chevron-down', trigger: 'Actions', label: 'This request',
+          items: ['Assign to someone', 'Ask for documents'], danger: 'Withdraw' } },
+        { id: 'shot-shape', title: 'Shape', panel: true, node: { p: 'shapes' } },
+      ] },
+    ],
+  },
+  {
+    id: 'overview', label: 'An overview', shot: true,
+    note: 'The screen a tool opens on: numbers, a chart, what just happened.',
+    cols: [
+      { w: 224, cards: [{ id: 'shot-ov-rail', title: '', panel: true, node: screenRail() }] },
+      { w: 856, cards: [{ id: 'shot-ov-main', title: '', panel: false, node: overviewScreen() }] },
+    ],
+  },
+  {
+    id: 'work', label: 'List and detail', shot: true,
+    note: 'The screen somebody lives in: a queue on the left, one case on the right.',
+    cols: [
+      { w: 620, cards: [{ id: 'shot-work-list', title: '', panel: true, node: { p: 'stack', gap: 3, kids: [
+        { p: 'row', between: true, kids: [
+          { p: 'heading', text: 'Requests' },
+          { p: 'row', kids: [
+            { p: 'button', tone: 'secondary', text: 'Filter' },
+            { p: 'button', tone: 'brand', text: 'New' },
+          ] },
+        ] },
+        { p: 'table', cols: ['Reference', 'Owner', 'Status', 'Due'], rows: [
+          ['2026-04471', 'M. Visser', 'Under review', '28 Sep'],
+          ['2026-03918', 'K. Boone', 'Granted', 'None'],
+          ['2026-03744', 'A. Yildiz', 'Refused', 'None'],
+          ['2026-03502', 'T. Okonkwo', 'Under review', '4 Oct'],
+          ['2026-03477', 'J. de Wit', 'Waiting', '11 Oct'],
+        ] },
+      ] } }] },
+      { w: 420, cards: [{ id: 'shot-work-case', title: '', panel: true, node: { p: 'stack', gap: 3, kids: [
+        { p: 'row', between: true, kids: [
+          { p: 'heading', text: '2026-04471' },
+          { p: 'badge', tone: 'brand', text: 'Under review' },
+        ] },
+        { p: 'kv', rows: [
+          ['Applicant', 'M. Visser'],
+          ['Category', 'Building work'],
+          ['Received', '2 Sep 2026'],
+          ['Case worker', 'K. Boone'],
+        ] },
+        { p: 'divider' },
+        { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Term used' }, { p: 'progress', value: 64 }] },
+        { p: 'row', between: true, kids: [
+          { p: 'button', tone: 'ghost', text: 'Put on hold' },
+          { p: 'button', tone: 'brand', text: 'Decide' },
+        ] },
+      ] } }] },
+    ],
+  },
+  {
+    id: 'settings', label: 'A form', shot: true,
+    note: 'Settings, the form everybody ships: fields, switches, one save.',
+    cols: [
+      { w: 560, cards: [{ id: 'shot-set-form', title: '', panel: true, node: { p: 'stack', gap: 3, kids: [
+        { p: 'heading', text: 'Settings' },
+        { p: 'tabs', items: ['Profile', 'Notifications', 'Security'] },
+        { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Name' }, { p: 'input', value: 'M. Visser' }] },
+        { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Email' }, { p: 'input', value: 'm.visser@havenstad.example' }] },
+        { p: 'stack', gap: 1, kids: [{ p: 'label', text: 'Time zone' }, { p: 'select', options: ['Amsterdam', 'Brussels', 'Lisbon'] }] },
+        { p: 'divider' },
+        { p: 'switch', on: true, text: 'A decision on one of my requests' },
+        { p: 'switch', on: false, text: 'Everything else' },
+        { p: 'row', between: true, kids: [
+          { p: 'button', tone: 'ghost', text: 'Reset' },
+          { p: 'button', tone: 'brand', text: 'Save' },
+        ] },
+      ] } }] },
+      { w: 400, cards: [{ id: 'shot-set-side', title: '', panel: false, node: { p: 'stack', gap: 3, kids: [
+        { p: 'alert', tone: 'success', text: 'Saved. Your changes are live.' },
+        { p: 'panel', kids: [{ p: 'stack', gap: 3, kids: [
+          { p: 'heading', text: 'Sessions' },
+          { p: 'list', rows: [
+            { icon: 'shield', title: 'This device', sub: 'Rotterdam · now', meta: 'Active' },
+            { icon: 'user', title: 'Work laptop', sub: 'Last seen 12 Sep', meta: 'Sign out' },
+          ] },
+        ] }] },
+      ] } }] },
+    ],
+  },
+  {
+    id: 'flow', label: 'A flow moment', shot: true,
+    note: 'The step before the button: a summary, one confirmation, and send.',
+    cols: [
+      { w: 620, cards: [{ id: 'shot-flow-main', title: '', panel: false, node: { p: 'stack', gap: 3, kids: [
+        { p: 'breadcrumb', items: ['Requests', 'New request', 'Check and send'] },
+        { p: 'panel', kids: [{ p: 'stack', gap: 3, kids: [
+          { p: 'heading', text: 'Check and send' },
+          { p: 'muted', text: 'Step 3 of 3. Nothing goes out until you send it.' },
+          { p: 'kv', rows: [
+            ['Category', 'Building work'],
+            ['Address', 'Kerkstraat 12'],
+            ['Starts', '1 Nov 2026'],
+          ] },
+          { p: 'checkbox', on: false, text: 'I filled this in truthfully' },
+          { p: 'row', between: true, kids: [
+            { p: 'button', tone: 'ghost', text: 'Back' },
+            { p: 'button', tone: 'brand', text: 'Send request' },
+          ] },
+        ] }] },
+      ] } }] },
+      { w: 380, cards: [{ id: 'shot-flow-side', title: '', panel: true, node: { p: 'stack', gap: 3, kids: [
+        { p: 'heading', text: 'What happens next' },
+        { p: 'list', rows: [
+          { icon: 'file-text', title: 'We confirm by email', sub: 'Straight away', meta: '1' },
+          { icon: 'inbox', title: 'A case worker picks it up', sub: 'Within two days', meta: '2' },
+          { icon: 'bell', title: 'You hear the decision', sub: 'Within eight weeks', meta: '3' },
+        ] },
+        { p: 'alert', tone: 'warning', text: 'Building work may also need the neighbours told.' },
+      ] } }] },
+    ],
+  },
+  {
+    id: 'twin', label: 'The same, dark', shot: true, dark: true,
+    note: 'The overview again, in this kit\'s own dark values. Not ours.',
+    cols: [
+      { w: 224, cards: [{ id: 'shot-tw-rail', title: '', panel: true, node: screenRail() }] },
+      { w: 856, cards: [{ id: 'shot-tw-main', title: '', panel: false, node: overviewScreen() }] },
+    ],
+  },
+]
+
 /**
  * A card as it is really rendered.
  *
@@ -328,7 +579,7 @@ export const nodeOf = (card) => (card.panel ? { p: 'panel', kids: [card.node] } 
  * a card can never be on the wall and missing from the count — and counted on
  * exactly the markup the wall shows, not on an unwrapped version of it.
  */
-export const SCENES = BOARDS.flatMap((b) => b.cols.flatMap((c) => c.cards.map((card) =>
+export const SCENES = [...BOARDS, ...SCREENS].flatMap((b) => b.cols.flatMap((c) => c.cards.map((card) =>
   ({ ...card, board: b.id, node: nodeOf(card) }))))
 
 /**
@@ -377,10 +628,10 @@ export const safeJson = (value) => JSON.stringify(value).split('</scr' + 'ipt').
  * hairline — the kits are the only things on the page allowed to have a look.
  */
 export const wallMarkup = (bind, boards = BOARDS) => `<main id="strip">${boards.map((b) =>
-  `<section class="board" id="b_${b.id}" data-board="${b.id}">
+  `<section class="board" id="b_${b.id}" data-board="${b.id}"${b.shot ? ' data-shot' : ''}${b.dark ? ' data-screen-dark' : ''}${b.caps ? '' : b.shot ? ' data-nocaps' : ''}>
     <header class="board__top"><h2 class="board__name">${b.label}</h2><p class="board__note">${b.note}</p></header>
-    <div class="board__cols">${b.cols.map((c) => `<div class="col" style="width:${c.w}px">${c.cards.map((card) =>
-      `<figure class="card" data-card="${card.id}"><figcaption class="cap">${card.title}</figcaption>${render(nodeOf(card), bind)}</figure>`).join('')}</div>`).join('')}</div>
+    <div class="board__cols">${b.shot ? '<div class="shotbox">' : ''}${b.cols.map((c) => `<div class="col" style="width:${c.w}px">${c.cards.map((card) =>
+      `<figure class="card" data-card="${card.id}"><figcaption class="cap">${card.title}</figcaption>${render(nodeOf(card), bind)}</figure>`).join('')}</div>`).join('')}${b.shot ? '</div>' : ''}</div>
   </section>`).join('')}</main>
 <style>/* NO font-family here. The wrapper setting one hard-coded our chrome over
    every kit's own typography, so the font knobs moved the card and nothing
@@ -454,6 +705,65 @@ html[data-quiet] #strip{cursor:default}
  * heading arrives whole. */
 html[data-quiet] #strip > .board{padding-top:66px}
 
+/* ── THE SIX SCREENS, AS A GRID ────────────────────────────────────────────
+ * A screen board is not a stop on the strip: the strip hides it, and the grid
+ * mode (data-shots on the html, set by whoever holds the frame) hides the
+ * strip's boards and lays the screens out as scaled cells instead. The cells
+ * scale by measurement, not by a constant: the script below reads each
+ * screen's natural size and writes the factor into --s, so a kit whose
+ * controls run taller simply gets a taller cell. */
+#strip > .board[data-shot]{display:none}
+html[data-shots] #strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:18px;padding:18px 20px;align-content:start;overflow:auto;overflow-x:hidden;cursor:default;scroll-snap-type:none}
+/* ON GLASS the 340px floor is wider than the glass: one fluid column, or the
+   grid hands the phone the sideways scroll the strip was cured of */
+@media (max-width:560px){
+  html[data-shots] #strip{grid-template-columns:minmax(0,1fr);gap:14px;padding:12px 14px}
+}
+html[data-shots] #strip > .board{display:none}
+html[data-shots] #strip > .board[data-shot]{display:flex;flex-direction:column;gap:7px;border:0;padding:0;
+  width:auto;min-width:0;scroll-snap-align:none}
+html[data-shots] .board[data-shot] .board__top{max-width:none}
+html[data-shots] .board[data-shot] .board__note{display:none}
+/* the window the screen scales inside: height is written by the script as
+   natural height times the factor, so nothing is cropped and nothing floats */
+html[data-shots] .board[data-shot] .board__cols{display:block;flex:none;overflow:hidden;
+  border:1px solid rgb(128 128 128 / .22);border-radius:8px;height:calc(var(--sh,760) * var(--s,.3) * 1px)}
+html[data-shots] .board[data-shot] .board__cols > .shotbox{display:flex;gap:20px;align-items:flex-start;
+  padding:20px;width:max-content;transform:scale(var(--s,.3));transform-origin:0 0}
+html[data-shots] [data-nocaps] .cap{display:none}
+/* the dark twin names why it cannot, on the kits whose dark is a media query,
+   an algorithm, or absent — set as an attribute by the page, read here */
+html[data-shots] .board[data-dark-na] .board__cols{position:relative}
+html[data-shots] .board[data-dark-na] .board__cols::after{content:attr(data-dark-na);position:absolute;
+  inset:auto 8px 8px 8px;font-size:11px;line-height:1.4;padding:6px 9px;border-radius:6px;
+  background:rgb(20 20 22 / .82);color:rgb(240 240 244 / .95)}
+/* ── EXPOSE: click a screen, get the screen ───────────────────────────────
+ * In the grid a screen is a picture (a third of its size: its controls are
+ * not targets, so they do not pretend to be). Click it and it takes the room
+ * at working size, controls live; click its margin, or Escape, to put it
+ * back. The attribute lives on the html so the parent page never has to know. */
+html[data-shots]:not([data-shot-solo]) .board[data-shot]{cursor:zoom-in}
+html[data-shots]:not([data-shot-solo]) .board[data-shot] .shotbox{pointer-events:none}
+html[data-shots][data-shot-solo] #strip{display:block}
+html[data-shots][data-shot-solo] #strip > .board[data-shot]{display:none}
+html[data-shots][data-shot-solo] #strip > .board.shotsolo{display:flex;cursor:zoom-out}
+html[data-shots][data-shot-solo] .board.shotsolo .board__note{display:block}
+html[data-shots][data-shot-solo] .board.shotsolo .board__note::after{content:' · Click the margin or press Escape for all six.'}
+/* ── THE AUDIT SEES BOTH ROOMS. The sweep measures computed colours, and an
+ * element with no box has none: in grid view the strip's boards are hidden
+ * and in strip view the screens are. The audit sets data-audit on the html
+ * and everything lays out at natural size at once — these come LAST so they
+ * win every earlier display rule at equal specificity. */
+html[data-audit] #strip{display:flex;height:auto;overflow:visible;align-items:flex-start}
+/* natural height, or flex-shrink quietly flattens a tall screen's cards and
+   the meter reports chips the real views never show that small */
+html[data-audit] #strip > .board{display:flex;height:auto}
+html[data-audit] #strip > .board[data-shot]{display:flex;width:auto;min-width:0}
+html[data-audit] .board[data-shot] .board__cols{display:block;height:auto;overflow:visible;border:0}
+/* the SAME selector depth as the grid rule it undoes, or it loses the
+   specificity tie and the scale stays on during measurement */
+html[data-audit] .board[data-shot] .board__cols > .shotbox{transform:none;pointer-events:auto}
 html[data-pick] [data-card]{cursor:zoom-in}
 html[data-pick] [data-card]:hover{outline:1px solid rgb(128 128 128 / .3);outline-offset:7px;border-radius:2px}
 html[data-solo] [data-card]{cursor:zoom-out}
@@ -509,6 +819,61 @@ html[data-solo] #strip > .board:not(:has([data-card][data-solo])){display:none}<
     var a=e.target.closest&&e.target.closest('a'),h=a&&a.getAttribute('href')
     if(a&&(!h||h.charAt(0)==='#'))e.preventDefault()
   })
+
+  /* ── THE SCREENS MEASURE THEMSELVES ─────────────────────────────────────
+   * A cell shows a whole screen scaled to its width, and the factor is read,
+   * not guessed: natural size over cell width. offsetWidth ignores the
+   * transform, so measuring and scaling never feed each other. Re-measured
+   * when the grid appears, when the window moves, when the fonts arrive and
+   * when the live values change a control's height. */
+  var shotsQueued=false
+  function shots(){
+    if(shotsQueued)return
+    shotsQueued=true
+    requestAnimationFrame(function(){
+      shotsQueued=false
+      if(!document.documentElement.hasAttribute('data-shots'))return
+      var bs=m.querySelectorAll('.board[data-shot]'),i,b,win,box,sw,sh
+      for(i=0;i<bs.length;i++){
+        b=bs[i]; win=b.querySelector('.board__cols'); box=b.querySelector('.shotbox')
+        if(!win||!box)continue
+        sw=box.offsetWidth; sh=box.offsetHeight
+        if(!sw||!sh)continue
+        b.style.setProperty('--sh',String(sh))
+        b.style.setProperty('--s',String(Math.min(1,win.clientWidth/sw)))
+      }
+    })
+  }
+  addEventListener('resize',shots)
+  new MutationObserver(shots).observe(document.documentElement,{attributes:true,attributeFilter:['data-shots','data-shot-solo']})
+
+  /* expose: one attribute out, one class on the chosen screen */
+  var H=document.documentElement
+  m.addEventListener('click',function(e){
+    if(!H.hasAttribute('data-shots'))return
+    if(H.hasAttribute('data-shot-solo')){
+      if(e.target.closest('input,select,textarea,button,a,label,summary,[role=radio],[role=checkbox],[role=switch],[role=slider],[role=tab],[role=menuitem]'))return
+      var s=m.querySelector('.board.shotsolo')
+      if(s&&e.target.closest('.card'))return
+      H.removeAttribute('data-shot-solo')
+      if(s)s.classList.remove('shotsolo')
+      return
+    }
+    var b=e.target.closest('.board[data-shot]')
+    if(!b)return
+    b.classList.add('shotsolo')
+    H.setAttribute('data-shot-solo',b.getAttribute('data-board')||'')
+  })
+  addEventListener('keydown',function(e){
+    if(e.key!=='Escape'||!H.hasAttribute('data-shot-solo'))return
+    H.removeAttribute('data-shot-solo')
+    var s=m.querySelector('.board.shotsolo')
+    if(s)s.classList.remove('shotsolo')
+  })
+  var liveEl=document.getElementById('live')
+  if(liveEl)new MutationObserver(shots).observe(liveEl,{childList:true,characterData:true,subtree:true})
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(shots)
+  shots()
 
   /* EVERY BACKSLASH IN HERE IS DOUBLED, because this whole script is a
      template literal and one of them is eaten on the way out. A split on

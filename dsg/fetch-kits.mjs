@@ -447,7 +447,12 @@ const SOURCES = {
 }
 
 let failed = 0, stale = 0
+/* a kit name as an argument limits the run to that kit: new scenes only need
+   Ant re-rendered (its wall is pre-rendered by its own React per scene), and
+   refetching eight others for that would move versions mid-change */
+const ONLY = process.argv.slice(2).filter((a) => SOURCES[a])
 for (const [id, kit] of Object.entries(SOURCES)) {
+  if (ONLY.length && !ONLY.includes(id)) continue
   let read
   try { read = await kit.read() } catch (e) {
     console.error(`✗ ${id} — could not read its source: ${e.message}`)

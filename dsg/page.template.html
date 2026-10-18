@@ -818,6 +818,7 @@ dialog::backdrop{background:#1c1b1966}
  * page and none of them is an action — they all just change what you are
  * looking at. */
 .seg{display:inline-flex;gap:2px;background:var(--sunken);padding:3px;border-radius:var(--r);flex:none}
+.seg[hidden]{display:none}
 .seg button{font:inherit;font-size:var(--fs-md);line-height:1;padding:0 11px;min-height:26px;border:0;
             border-radius:var(--r-sm);background:0;color:var(--muted);cursor:pointer;white-space:nowrap;
             transition:color .12s ease,background-color .12s ease}
@@ -990,6 +991,10 @@ const state = {
      sent a kit is not starting. */
   stage: 'start',
   board: 'foundations',
+  /* WHAT THE BAND SHOWS: the six screens as a grid ('shots'), or the strip of
+     component boards ('parts'). The screens answer "what would my app feel
+     like", which is the question that comes first, so they are the default. */
+  view: 'shots',
   /* the strip and the wall open in the mode the visitor's OS asked for: that
      is still the KIT's own dark render, not our chrome's; the Light/Dark
      switch stays the boss, and a kit without a dark mode stays light */
@@ -1126,6 +1131,26 @@ function paint() {
     const wantDark = state.mode === 'dark' && !!DARKSWITCH[r.kit]
     DARK_ROOT[r.kit]?.(root, wantDark)
     root.style.colorScheme = wantDark ? 'dark' : 'light'
+    /* the six screens as a grid, or the strip — comparing is always strips */
+    root.toggleAttribute('data-shots', state.view === 'shots' && !state.compare)
+    /* THE TWIN RUNS THE KIT'S OWN DARK, ON A SUBTREE. The same switch the
+       whole frame gets in dark mode, applied to one section — honest for the
+       kits whose switch is a class or an attribute. The kits whose dark is a
+       media query, an algorithm, or absent cannot switch a subtree, and the
+       cell says so on the screen instead of pretending. */
+    for (const cell of f.contentDocument.querySelectorAll('[data-screen-dark]')) {
+      if (wantDark) {
+        /* the frame is already dark. A switch ON THE CELL would pin the kit's
+           baked dark seeds at closer range than the live re-theme on the root
+           — the specificity-at-distance lesson, third appearance. The twin
+           simply inherits the frame it is in. */
+        cell.removeAttribute('data-theme'); cell.removeAttribute('data-bs-theme')
+        cell.removeAttribute('data-mantine-color-scheme')
+        cell.classList.remove('dark'); cell.classList.remove('light')
+        cell.removeAttribute('data-dark-na')
+      } else if (DARK_ROOT[r.kit]) { DARK_ROOT[r.kit](cell, true); cell.removeAttribute('data-dark-na') }
+      else cell.setAttribute('data-dark-na', DARK_NA[r.kit] ?? `${KITS[r.kit]?.name ?? r.kit} publishes no dark a page can switch, so this is its light render.`)
+    }
     /* and its per-element tones, which live in the markup rather than in a
        variable — the wall is built once, so they are re-tuned in place */
     /* EVERY chosen role, not only the per-element tones: the brand is a choice
@@ -1168,6 +1193,14 @@ function paint() {
     const liveScope = state.mode === 'dark' && darkSel && !darkSel.startsWith('@') && darkSel !== 'theme' && darkSel !== 'algorithm'
       ? darkSel : scopeOf(r.kit)
     live.textContent = `${liveScope}{${Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';')}}`
+    /* and the twin's values: the ROUTED dark set, scoped under the cell so it
+       beats both the light set on the root and the kit's own baked dark seeds
+       (#strip [attr] out-specifies both). Only while the page itself is
+       light — in dark mode the whole frame already carries these. */
+    if (state.mode !== 'dark' && DARK_ROOT[r.kit]) {
+      const twin = varsOf(below(r.kit), true)
+      if (Object.keys(twin).length) live.textContent += `#strip [data-screen-dark]{${Object.entries(twin).map(([k, v]) => `${k}:${v}`).join(';')}}`
+    }
     /* AND BOOTSTRAP'S COMPILED HALF, REWRITTEN.
        Its component colours are Sass output, which is why they never moved —
        but every one of them landed in a --bs- custom property, and a custom
@@ -1213,6 +1246,7 @@ function startCompare() {
 
 /** Lay the frames out, and hand the wall in each one the card it must show. */
 function layout() {
+  drawRooms()
   const shown = state.compare ? comparing() : [state.show]
   shown.forEach(build)
   const box = $('#frames')
@@ -1670,6 +1704,14 @@ const DARK_ROOT = {
   mantine: (el, on) => el.setAttribute('data-mantine-color-scheme', on ? 'dark' : 'light'),
   daisyui: (el, on) => el.setAttribute('data-theme', on ? 'yourkitdark' : 'yourkit'),
 }
+/* why the dark twin cannot run, for the kits where it cannot — each reason is
+   that kit's own architecture, not a shrug */
+const DARK_NA = {
+  tailwind: 'Tailwind publishes no dark values, so this is its light render.',
+  material: "Material's dark follows the OS through its own media query; shown light here.",
+  openprops: "Open Props' dark follows the OS through its own media query; shown light here.",
+  antd: "Ant Design's dark is an algorithm over the seeds, not a stylesheet switch; shown light here.",
+}
 function drawModes() {
   const kit = state.show
   const can = !!DARKSWITCH[kit]
@@ -1694,7 +1736,19 @@ $('#modes').addEventListener('click', (e) => {
  * are STOPS: the wall never hides anything, so pressing one takes you there and
  * panning past one lights it. A filter would answer the question "what is on
  * this wall" by removing most of it. */
+function drawRooms() {
+  $('#rooms').hidden = !!state.compare
+  $('#rooms').innerHTML = [['shots', 'Screens'], ['parts', 'Components']]
+    .map(([id, label]) => `<button role="radio" data-v="${id}" aria-checked="${id === state.view}">${label}</button>`).join('')
+  /* the rungs are stops on the strip; the grid has no strip to stop on */
+  $('#rungs').hidden = state.view !== 'parts' && !state.compare
+}
+$('#rooms').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  state.view = b.dataset.v; drawRooms(); paint()
+})
 function drawBoards() {
+  drawRooms()
   $('#rungs').innerHTML = BOARDS.map((b) =>
     `<button role="radio" data-g="${b.id}" aria-checked="${b.id === state.board}" title="${b.note}">${b.label}</button>`).join('')
 }
@@ -2657,8 +2711,7 @@ function stage(next) {
   const from = state.stage
   state.stage = next
   $('.app').dataset.stage = next
-  $('#flipsee').hidden = next === 'wall'
-  $('#flipback').hidden = next !== 'wall'
+  $('#stageflip').hidden = next !== 'wall'
   /* comparing belongs to the wall; folded down to a strip it is six frames
      fighting for 340 pixels */
   if (next === 'compose' && state.compare) { state.compare = null; state.solo = null }
@@ -2701,7 +2754,10 @@ function drawStarts() {
   /* Bootstrap writes "Segoe UI" with double quotes in its published stack, and
      a double quote ends a style attribute: escape what goes into one */
   const attr = (x) => String(x).replaceAll('"', '&quot;')
-  $('#vibes').innerHTML = Object.values(STARTS).map((d) => {
+  /* shadcn first: the modern default this tool opens on; the order of the
+     rest stays the build's own */
+  const doorOrder = [...Object.values(STARTS)].sort((a, b) => (b.id === 'shadcn') - (a.id === 'shadcn'))
+  $('#vibes').innerHTML = doorOrder.map((d) => {
     const v = d.values
     const chips = ['brand', 'ink', 'inkMuted', 'line'].map((r) => v[r]).filter(Boolean)
     const face = v.fontBody ? `font-family:${attr(v.fontBody)};` : ''
@@ -2945,9 +3001,18 @@ async function runSweep(brandBHex) {
 
   /* one frame\'s colours, element by element, pseudos included where the paint
      lives in one (a range track is only a pseudo) */
-  const scan = (doc) => {
+  const scan = (doc, mode) => {
     const out = []
+    scan.deferred = 0
     for (const el of doc.querySelectorAll('#strip *')) {
+      /* THE TWIN IS A DARK ROOM IN A LIGHT PASS. Its subtree runs the kit's
+         own dark values on purpose, so judging it against the light set
+         would flag the feature. The dark passes (every DARK_PROVEN kit)
+         measure the same markup under the same switch; here it is DEFERRED
+         AND COUNTED, never quietly dropped. For the kits whose dark chain
+         is still open (mantine, shadcn — named below) the twin is exactly
+         as open as their dark pass, no more. */
+      if (mode === 'light' && el.closest('[data-screen-dark]')) { scan.deferred++; continue }
       const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue
       const targets = [[el, null, getComputedStyle(el)]]
       for (const ps of ['::before', '::after']) { const cs = getComputedStyle(el, ps); if (cs.content !== 'none') targets.push([el, ps, cs]) }
@@ -3000,7 +3065,10 @@ async function runSweep(brandBHex) {
     const doc = await settled(id)
     const vkey = sweepMode === 'dark' ? id + '·dark' : id
     if (!doc) { verdict[vkey] = { error: 'no frame' }; continue }
-    const A = scan(doc)
+    /* both rooms at natural size: hidden boxes have no computed colours */
+    doc.documentElement.setAttribute('data-audit', '')
+    await raf()
+    const A = scan(doc, sweepMode)
 
     /* FOLLOW — who claims the brand\'s hue family at pass A */
     const family = A.filter((e) => { const o = okl(e.c); return o && o[1] > 0.04 && hueDist(o[2], hueA) < 32 })
@@ -3169,7 +3237,7 @@ async function runSweep(brandBHex) {
 
     verdict[vkey] = { checked: A.length, followed: family.length - stale.length, family: family.length,
       live: !!LIVE_BRAND[id], stale, invisible: [...new Set(invisible)], samestate,
-      dead: dead.slice(0, 40), deadCount: dead.length, passB }
+      dead: dead.slice(0, 40), deadCount: dead.length, passB, twinDeferred: scan.deferred }
     } catch (e) { verdict[sweepMode === 'dark' ? id + '·dark' : id] = { error: String(e && e.message || e) } }
   }
 
@@ -3210,6 +3278,8 @@ function fromUrl() {
   if (card && SCENES.some((c) => c.id === card)) state.solo = card
   const board = q.get('board')
   if (board && BOARDS.some((b) => b.id === board)) state.board = board
+  /* a link that points at a card or a board points INTO the strip */
+  if (q.get('view') === 'parts' || card || board) state.view = 'parts'
   const brand = (q.get('brand') || '').replace(/^#/, '')
   if (HEX6.test('#' + brand)) state.values.brand = '#' + brand.toLowerCase()
   /* a link that carries anything at all was sent by somebody who had already
@@ -3218,6 +3288,9 @@ function fromUrl() {
   if (asked === 'compose' || asked === 'wall') state.stage = asked
   else if (asked === 'build' || [...q.keys()].some((k) => k !== 'stage')) state.stage = 'wall'
   $('.app').dataset.stage = state.stage
+  /* booting straight into the wall by link: the way back must be there
+     without a stage() transition ever having run */
+  $('#stageflip').hidden = state.stage !== 'wall'
 }
 /* and written back, so what you are looking at is what you can send someone.
    replaceState, not pushState: turning a knob is not a page you go back to. */
@@ -3229,6 +3302,7 @@ function toUrl() {
   q.set('kits', [...state.on].join(','))
   if (state.compare) q.set('compare', comparing().join(','))
   if (state.solo) q.set('card', state.solo)
+  if (state.view === 'parts') q.set('view', 'parts')
   if (HEX6.test(state.values.brand ?? '')) q.set('brand', state.values.brand.slice(1))
   history.replaceState(null, '', location.pathname + '?' + q)
 }

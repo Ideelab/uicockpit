@@ -16,7 +16,7 @@ import { buildCss } from './build-css.mjs'
 import { deriveMaterial } from './derive-material.mjs'
 import { render, PARTS } from './parts.mjs'
 import { WALL, useMantineClasses, useRadixTones, useIcons, useIconSets, iconKit, useShadcnParts, useAntdParts } from './wall-bindings.mjs'
-import { SCENES, ICON_NAMES, BOARDS, wallMarkup, safeJson } from './scenes.mjs'
+import { SCENES, ICON_NAMES, BOARDS, SCREENS, wallMarkup, safeJson } from './scenes.mjs'
 import { readIconSets, KIT_ICON_SETS } from './icon-sets.mjs'
 import { kitDefaults } from './kit-defaults.mjs'
 import { ownage, partOwnage } from './fidelity.mjs'
@@ -91,7 +91,8 @@ const RENDERS = IDS.filter((id) => kits[id].layer !== 'tokens')
  * hero shot render, from the one implementation in scenes.mjs — pointed first
  * at the icon set THIS kit ships with, so a Tailwind frame draws Heroicons
  * and an Ant frame draws Ant's own. */
-const wall = (id) => { iconKit(KIT_ICON_SETS[id] ?? null); return `<html${ROOT[id] ?? ''}>${wallMarkup(WALL[id])}` }
+/* the strip's boards AND the six screens: one document, two rooms */
+const wall = (id) => { iconKit(KIT_ICON_SETS[id] ?? null); return `<html${ROOT[id] ?? ''}>${wallMarkup(WALL[id], [...BOARDS, ...SCREENS])}` }
 
 /* The icons the wall names are read BEFORE the CSS is built, because the wall
  * is what Tailwind scans: an icon read afterwards would be markup no stylesheet
