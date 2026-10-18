@@ -100,7 +100,7 @@ const wall = (id) => { iconKit(KIT_ICON_SETS[id] ?? null); return `<html${ROOT[i
  * a companion set gets that set, read from its own package, and a translation
  * to a name a package does not contain is an error here, not a blank square. */
 console.log('reading the icons from lucide…')
-const CHROME_ICONS = ['sparkles', 'shuffle', 'download', 'x', 'check', 'search', 'maximize', 'minimize', 'layers', 'chevron-down']
+const CHROME_ICONS = ['sparkles', 'shuffle', 'download', 'x', 'check', 'search', 'maximize', 'minimize', 'layers', 'chevron-down', 'play']
 const NAMES = [...new Set([...CHROME_ICONS, ...ICON_NAMES])]
 const lu = icons(NAMES)
 useIcons(lu.icons)

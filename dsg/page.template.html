@@ -644,6 +644,17 @@ button.band[aria-expanded=true] .band__go svg{transform:rotate(180deg)}
 .wall__count{margin:9px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5}
 .wall__count b{color:var(--ink);font-weight:600}
 .frames{flex:1;min-height:0}
+.apppane{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+.apppane__bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.apppane__url{flex:1;min-width:220px;font:inherit;font-size:var(--fs-md);padding:0 12px;min-height:36px;
+  border:var(--bw) solid var(--line);border-radius:var(--r);background:var(--panel);color:var(--ink)}
+.apppane__url:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.apppane__status{margin:0;flex-basis:100%;font-size:var(--fs-sm);color:var(--muted);display:flex;align-items:center;gap:8px;min-height:1.5em}
+#appframe{flex:1;width:100%;min-height:480px;border:var(--bw) solid var(--line);border-radius:var(--r-lg);background:#fff}
+.apppane__how{max-width:62ch;padding:18px 20px;border:var(--bw) solid var(--line);border-radius:var(--r-lg);background:var(--panel)}
+.apppane__how ol{margin:8px 0 12px;padding-left:20px;display:grid;gap:8px;font-size:var(--fs-md);line-height:1.55;color:var(--ink)}
+.apppane__how .fine{margin:0}
+.apppane__snip{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:var(--sunken);padding:2px 6px;border-radius:var(--r-sm);color:var(--ink);word-break:break-all}
 .frames iframe{width:100%;height:100%;min-height:480px;border:0;border-radius:var(--r-lg);background:#fff;display:block}
 .frames iframe[hidden]{display:none}
 
@@ -1089,6 +1100,7 @@ function paint() {
   receipt(routed)
   toUrl()
   markState()
+  sendToApp()
   /* the specimens are drawn FROM the values, so they move when the values do */
   if (state.stage === 'compose') { drawFeel(); drawScale(); drawColourCards() }
 
@@ -1217,6 +1229,8 @@ function paint() {
         return made ? `${prop}:${made}` : ''
       }).filter(Boolean).join(';')}}`).join('')
     }
+    LIVE_TEXT[r.kit] = live.textContent
+    LIVE_ATTRS[r.kit] = r.attrs ?? {}
     pick(f)
   }
 }
@@ -1247,6 +1261,12 @@ function startCompare() {
 /** Lay the frames out, and hand the wall in each one the card it must show. */
 function layout() {
   drawRooms()
+  /* your app takes the frames' room; the kit's frame keeps living hidden
+     underneath, because it is what computes the live block the app receives */
+  const appView = state.view === 'app' && !state.compare
+  $('#apppane').hidden = !appView
+  $('#frames').hidden = appView
+  if (appView) drawApp()
   const shown = state.compare ? comparing() : [state.show]
   shown.forEach(build)
   const box = $('#frames')
@@ -1706,6 +1726,91 @@ const DARK_ROOT = {
 }
 /* why the dark twin cannot run, for the kits where it cannot — each reason is
    that kit's own architecture, not a shrug */
+/* ── YOUR APP ──────────────────────────────────────────────────────────────
+ * The bridge's page half. What a frame gets through dress() — the live block
+ * with every routed variable under the kit's own scope, the root switch for
+ * dark, the Radix attributes, the webfont links — is captured as it is
+ * written and posted to the app in the pane. The app side (live.js) writes
+ * it into one <style>. Same values, same selectors, somebody else's markup. */
+const LIVE_TEXT = {}
+const LIVE_ATTRS = {}
+let appReady = false
+let appKit = null
+function appPayload() {
+  const kit = state.show
+  const probe = document.createElement('div')
+  const wantDark = state.mode === 'dark' && !!DARKSWITCH[kit]
+  DARK_ROOT[kit]?.(probe, wantDark)
+  const attrs = { ...LIVE_ATTRS[kit] }
+  for (const a of probe.attributes) attrs[a.name] = a.value
+  const families = TYPE.map((t) => familyOf(state.values[t.id])).filter((f) => f && GOOGLE.has(f))
+  const fonts = [...new Set(families)].map((f) =>
+    `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap`)
+  return { type: 'uicockpit:theme', css: LIVE_TEXT[kit] ?? '', root: { classes: [...probe.classList], attrs },
+    scheme: wantDark ? 'dark' : 'light', fonts }
+}
+function sendToApp() {
+  const f = $('#appframe')
+  if (!appReady || !f || f.hidden || !f.contentWindow) return
+  f.contentWindow.postMessage(appPayload(), '*')
+}
+function drawApp() {
+  /* assembled, never written: a literal closing tag inside this inline
+     module ends the module where it stands (the wall's lesson, again) */
+  $('#appsnip').textContent = '<script src="' + location.origin + '/live.js"><' + '/script>'
+}
+function appStatus(text, action) {
+  const el = $('#appstatus')
+  el.textContent = text
+  if (action) {
+    const b = document.createElement('button')
+    b.className = 'mini'; b.textContent = action.label
+    b.addEventListener('click', action.go)
+    el.append(' ', b)
+  }
+}
+let appTimer = null
+$('#appgo').addEventListener('click', () => {
+  let url = ($('#appurl').value || '').trim()
+  if (!url) return $('#appurl').focus()
+  if (!/^https?:\/\//i.test(url)) url = 'http://' + url
+  $('#appurl').value = url
+  const f = $('#appframe')
+  appReady = false; appKit = null
+  f.hidden = false
+  $('#apphow').hidden = true
+  f.src = url
+  appStatus('Loading…')
+  clearTimeout(appTimer)
+  appTimer = setTimeout(() => {
+    if (!appReady) appStatus('Nothing heard back. Is the script line in the page, and does the address load outside a frame?')
+  }, 6000)
+})
+$('#appcopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('#appsnip').textContent); $('#appcopy').textContent = 'Copied' }
+  catch { $('#appcopy').textContent = 'Select and copy' }
+  setTimeout(() => ($('#appcopy').textContent = 'Copy'), 1400)
+})
+addEventListener('message', (e) => {
+  const f = $('#appframe')
+  if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'uicockpit:ready') return
+  appReady = true
+  appKit = e.data.kit && KITS[e.data.kit] ? e.data.kit : null
+  clearTimeout(appTimer)
+  const name = appKit ? KITS[appKit].name : null
+  if (!appKit) appStatus('Connected. This page runs on none of the nine as far as it shows, so the values have nothing to land on.')
+  else if (appKit !== state.show && RENDERS.includes(appKit)) {
+    appStatus(`Connected · runs on ${name}.`, { label: `Switch to ${name}`, go: () => {
+      const k = KITS[appKit]
+      const next = k.layer === 'components' && !k.standalone ? new Set([foundationOf(KITS), appKit]) : new Set([appKit])
+      const done = () => appStatus(`Connected · runs on ${name}.`)
+      if (stack(next, KITS).base !== stack(state.on, KITS).base) { askSwitch(next); return setTimeout(() => { if (state.show === appKit) done() }, 600) }
+      state.on = next; sync(); paint(); drawStackPicker(); done()
+    } })
+  } else appStatus(`Connected · runs on ${name}.`)
+  sendToApp()
+})
+
 const DARK_NA = {
   tailwind: 'Tailwind publishes no dark values, so this is its light render.',
   material: "Material's dark follows the OS through its own media query; shown light here.",
@@ -1738,7 +1843,7 @@ $('#modes').addEventListener('click', (e) => {
  * this wall" by removing most of it. */
 function drawRooms() {
   $('#rooms').hidden = !!state.compare
-  $('#rooms').innerHTML = [['shots', 'Screens'], ['parts', 'Components']]
+  $('#rooms').innerHTML = [['shots', 'Screens'], ['parts', 'Components'], ['app', 'Your app']]
     .map(([id, label]) => `<button role="radio" data-v="${id}" aria-checked="${id === state.view}">${label}</button>`).join('')
   /* the rungs are stops on the strip; the grid has no strip to stop on */
   $('#rungs').hidden = state.view !== 'parts' && !state.compare
@@ -3279,7 +3384,8 @@ function fromUrl() {
   const board = q.get('board')
   if (board && BOARDS.some((b) => b.id === board)) state.board = board
   /* a link that points at a card or a board points INTO the strip */
-  if (q.get('view') === 'parts' || card || board) state.view = 'parts'
+  if (q.get('view') === 'parts' || q.get('view') === 'app') state.view = q.get('view')
+  if (card || board) state.view = 'parts'
   const brand = (q.get('brand') || '').replace(/^#/, '')
   if (HEX6.test('#' + brand)) state.values.brand = '#' + brand.toLowerCase()
   /* a link that carries anything at all was sent by somebody who had already
@@ -3302,7 +3408,7 @@ function toUrl() {
   q.set('kits', [...state.on].join(','))
   if (state.compare) q.set('compare', comparing().join(','))
   if (state.solo) q.set('card', state.solo)
-  if (state.view === 'parts') q.set('view', 'parts')
+  if (state.view !== 'shots') q.set('view', state.view)
   if (HEX6.test(state.values.brand ?? '')) q.set('brand', state.values.brand.slice(1))
   history.replaceState(null, '', location.pathname + '?' + q)
 }

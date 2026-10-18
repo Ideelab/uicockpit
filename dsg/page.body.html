@@ -170,6 +170,34 @@
   </div>
   <div class="frames" id="frames"></div>
 
+  <!-- YOUR APP, IN THESE VALUES. The same bridge tweakcn proved: one script
+       line in the app, its address pasted here, and every value the knobs
+       write lands in that page as the kit's own variables, through
+       postMessage, exactly as it lands in the frames above. No model, no
+       upload, nothing stored. -->
+  <div class="apppane" id="apppane" hidden>
+    <div class="apppane__bar">
+      <input class="apppane__url" id="appurl" type="url" placeholder="http://localhost:3000" spellcheck="false"
+             autocomplete="off" aria-label="The address your app runs on">
+      <button class="btn btn--go" id="appgo"><!--I:play-->Show my app</button>
+      <p class="apppane__status" id="appstatus" aria-live="polite"></p>
+    </div>
+    <iframe id="appframe" title="Your app" hidden></iframe>
+    <div class="apppane__how" id="apphow">
+      <p class="eyebrow">Your app, in these values</p>
+      <ol>
+        <li>Put one line in your app's <code>&lt;head&gt;</code>:
+          <code class="apppane__snip" id="appsnip"></code>
+          <button class="mini" id="appcopy">Copy</button></li>
+        <li>Paste the address it runs on above. <code>localhost</code> works from here.</li>
+      </ol>
+      <p class="fine">Every value you turn lands in your app as the kit's own variables, the same way it
+        lands in the screens. The line does nothing else: no network, no storage, and it is inert when
+        the page is not framed by this tool. Your app runs on none of the nine? Then nothing will move
+        here, and that is exactly what the export's skill is for.</p>
+    </div>
+  </div>
+
 </main>
 
 <footer class="dock">

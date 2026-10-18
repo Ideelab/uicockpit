@@ -5,7 +5,7 @@
   "scripts": {
     "kits": "node fetch-kits.mjs",
     "kits:check": "node fetch-kits.mjs --check",
-    "test": "node --test roles.test.mjs generate.test.mjs wall.test.mjs color.test.mjs stack.test.mjs material.test.mjs type.test.mjs semantic.test.mjs palettes.test.mjs designmd.test.mjs sweep.test.mjs skillmd.test.mjs",
+    "test": "node --test roles.test.mjs generate.test.mjs wall.test.mjs color.test.mjs stack.test.mjs material.test.mjs type.test.mjs semantic.test.mjs palettes.test.mjs designmd.test.mjs sweep.test.mjs skillmd.test.mjs live.test.mjs",
     "proof": "node build-proof.mjs",
     "wall": "node preview.mjs",
     "page": "node build-page.mjs generator.html",
@@ -17,6 +17,6 @@
     "orphans:gate": "node orphans.mjs --gate",
     "sweep": "node sweep-check.mjs",
     "exports": "node exports-check.mjs",
-    "dist": "rm -rf dist && mkdir dist && cp home.html dist/index.html && cp generator.html dist/generator.html && cp sw.js dist/sw.js && cp og.png dist/og.png && cp favicon.svg sitemap.xml robots.txt llms.txt dist/"
+    "dist": "rm -rf dist && mkdir dist && cp home.html dist/index.html && cp generator.html dist/generator.html && cp sw.js dist/sw.js && cp live.js dist/live.js && cp og.png dist/og.png && cp favicon.svg sitemap.xml robots.txt llms.txt dist/"
   }
 }
